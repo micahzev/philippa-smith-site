@@ -1,0 +1,31 @@
+{
+  "name": "philippa-smith-studio",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sanity Studio for Philippa Smith's portfolio site",
+  "main": "package.json",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "deploy-graphql": "sanity graphql deploy",
+    "backup": "sanity dataset export production backups/backup-$(date +%Y-%m-%d).tar.gz"
+  },
+  "keywords": ["sanity"],
+  "dependencies": {
+    "@sanity/vision": "^3.57.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sanity": "^3.57.0",
+    "styled-components": "^6.1.13"
+  },
+  "devDependencies": {
+    "@sanity/eslint-config-studio": "^4.0.0",
+    "@types/react": "^18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}

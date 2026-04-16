@@ -1,0 +1,31 @@
+# Cloudflare Pages / Netlify — HTTP headers
+# Controls caching and security for the static frontend.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+# HTML should revalidate so admin updates appear quickly
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Service worker must never be cached by the browser
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Manifest — short cache
+/manifest.webmanifest
+  Cache-Control: public, max-age=3600
+  Content-Type: application/manifest+json
+
+# Icons and static OG image — long cache
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/og-image.jpg
+  Cache-Control: public, max-age=604800

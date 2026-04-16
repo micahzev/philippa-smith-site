@@ -1,0 +1,30 @@
+# robots.txt for philippasmith.com
+# Full openness to major search engines AND AI crawlers
+# (AI-SEO: letting LLMs index the site improves mentions in AI answers)
+
+User-agent: *
+Allow: /
+
+# Explicitly welcome AI/LLM crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://www.philippasmith.com/sitemap.xml
