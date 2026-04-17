@@ -83,9 +83,9 @@
       --f-body: 'Montserrat', sans-serif;
 
       --ease: cubic-bezier(0.22, 1, 0.36, 1);
-      --dur: 1.66s;
+      --dur: 1.5s;
 
-      --page-pad: clamp(20px, 4vw, 56px);
+      --page-pad: clamp(16px, 2.5vw, 32px);
       --gap: clamp(14px, 2vw, 24px);
     }
 
@@ -169,7 +169,7 @@
       align-items: baseline;
       justify-content: space-between;
       gap: 24px;
-      margin-bottom: clamp(20px, 3vw, 32px);
+      /* margin-bottom: clamp(20px, 3vw, 32px); */
     }
     .project-title {
       font-family: var(--f-display);
@@ -201,26 +201,29 @@
     /* Solo mode: single work, no navigation. Preserve the same visual width
        as multi-item carousels by keeping arrow-sized reserved columns. */
     .stage.solo {
-      grid-template-columns: 44px 1fr 44px;
+      grid-template-columns: 48px 1fr 48px;
     }
     .stage.solo .arrow { visibility: hidden; pointer-events: none; }
     .project:has(.stage.solo) .counter { visibility: hidden; }
     .arrow {
-      width: 44px;
-      height: 44px;
-      border: 1px solid var(--rule);
-      border-radius: 999px;
+      /* Chevron-only, no border, no background */
+      width: 48px;
+      height: 48px;
       display: grid;
       place-items: center;
-      background: var(--bg);
-      transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease), transform 180ms var(--ease);
+      color: var(--ink);
+      transition: color 180ms var(--ease), opacity 180ms var(--ease), transform 180ms var(--ease);
       flex-shrink: 0;
       z-index: 3;
     }
-    .arrow:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-    .arrow:active { transform: scale(0.94); }
-    .arrow:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-    .arrow svg { width: 16px; height: 16px; }
+    .arrow:hover { color: var(--ink-mute); }
+    .arrow:active { color: var(--ink-mute); transform: scale(0.92); }
+    .arrow:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
+    .arrow svg {
+      width: 28px;
+      height: 28px;
+      stroke-width: 1;
+    }
     .arrow[disabled] { opacity: 0.3; cursor: not-allowed; }
 
     /* Viewport masks overflow; track slides horizontally */
@@ -250,7 +253,7 @@
       overflow: hidden;
       width: 100%;
       max-width: min(720px, 100%);
-      aspect-ratio: 4 / 5;
+      aspect-ratio: 4 / 3;
     }
     @media (min-width: 768px) {
       .work-media { max-width: min(820px, 100%); }
@@ -271,7 +274,7 @@
       inset: 0;
       display: grid;
       place-items: center;
-      /* background: rgba(0,0,0,0.08); */
+      background: rgba(0,0,0,0.08);
       transition: background 200ms var(--ease);
     }
     .play-badge:hover { background: rgba(0,0,0,0.18); }
@@ -540,13 +543,13 @@
         </div>
         <div class="stage">
           <button class="arrow prev" aria-label="Previous work">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 4 8 12 16 20"/></svg>
           </button>
           <div class="viewport">
             <div class="track"></div>
           </div>
           <button class="arrow next" aria-label="Next work">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 4 16 12 8 20"/></svg>
           </button>
         </div>
       `;
