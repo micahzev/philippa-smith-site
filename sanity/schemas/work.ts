@@ -1,5 +1,5 @@
 import {defineType, defineField} from 'sanity'
-
+ 
 export default defineType({
   name: 'work',
   title: 'Work',
@@ -29,7 +29,7 @@ export default defineType({
       type: 'string',
       description: 'e.g. "2024". Optional.',
     }),
-
+ 
     defineField({
       name: 'mediaType',
       title: 'Media Type',
@@ -44,7 +44,7 @@ export default defineType({
       },
       validation: (R) => R.required(),
     }),
-
+ 
     defineField({
       name: 'image',
       title: 'Image',
@@ -59,7 +59,7 @@ export default defineType({
           return true
         }),
     }),
-
+ 
     defineField({
       name: 'posterImage',
       title: 'Video Poster Image',
@@ -82,11 +82,12 @@ export default defineType({
       name: 'videoUrl',
       title: 'Video URL (external)',
       type: 'url',
-      description: 'Alternative to upload — paste a direct .mp4 URL (e.g. from Cloudflare Stream).',
+      description:
+        'Paste a link to a video hosted elsewhere. Supports Vimeo (e.g. https://vimeo.com/123456789), YouTube, or a direct .mp4 URL (e.g. Cloudflare Stream). Use this for larger videos instead of the upload field above.',
       hidden: ({parent}) => parent?.mediaType !== 'video',
     }),
   ],
-
+ 
   preview: {
     select: {
       title: 'pieceName',
