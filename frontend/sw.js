@@ -2,15 +2,16 @@
  *
  * Strategy:
  *  - Shell (HTML/manifest/icons) cached on install.
- *  - Sanity API responses: stale-while-revalidate so the site feels instant
- *    but still refreshes content in the background.
+ *  - Sanity API responses: network-first so content is always fresh when
+ *    online, with a cached fallback for offline use. (Previously
+ *    stale-while-revalidate, which caused new works to appear one load late.)
  *  - Sanity CDN images: cache-first (content-addressed URLs never change).
  *  - Everything else network-first.
  *
- * Bump CACHE_VERSION whenever you change the shell.
+ * Bump CACHE_VERSION whenever you change the shell or invalidation strategy.
  */
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const SHELL_CACHE   = `ps-shell-${CACHE_VERSION}`;
 const DATA_CACHE    = `ps-data-${CACHE_VERSION}`;
 const IMG_CACHE     = `ps-img-${CACHE_VERSION}`;
@@ -54,9 +55,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Sanity API — stale-while-revalidate
+  // Sanity API — network-first so we always get fresh content when online.
+  // Falls back to the cached response only if the network is unavailable.
   if (url.hostname.endsWith('api.sanity.io') || url.hostname.endsWith('apicdn.sanity.io')) {
-    event.respondWith(staleWhileRevalidate(req, DATA_CACHE));
+    event.respondWith(networkFirst(req, DATA_CACHE));
     return;
   }
 

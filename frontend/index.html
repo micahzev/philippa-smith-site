@@ -481,7 +481,7 @@
       projectId: SANITY_PROJECT_ID,
       dataset: SANITY_DATASET,
       apiVersion: '2024-01-01',
-      useCdn: true, // cached CDN — fast and free
+      useCdn: false, // hit the live API, not the CDN edge cache — content-first
     });
     const builder = imageUrlBuilder(client);
     const urlFor = (src) => builder.image(src);
