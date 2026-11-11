@@ -395,6 +395,15 @@
       letter-spacing: 0.14em;
       text-transform: uppercase;
     }
+    .page-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: var(--bg);
+      transition: opacity 400ms var(--ease);
+    }
+    .page-loader.is-done { opacity: 0; pointer-events: none; }
+    body.is-loading { overflow: hidden; }
     .skeleton .work-media {
       background: linear-gradient(100deg, var(--bg-warm) 30%, #ecebe4 50%, var(--bg-warm) 70%);
       background-size: 200% 100%;
@@ -510,7 +519,8 @@
     }
   </style>
 </head>
-<body>
+<body class="is-loading">
+  <div class="page-loader" id="page-loader" role="status" aria-label="Loading"><div class="loader"></div></div>
   <a href="#work" class="skip">Skip to work</a>
 
   <header class="site">
@@ -518,9 +528,7 @@
   </header>
 
   <main id="work">
-    <div id="projects-root">
-      <div class="status" id="loading-msg">Loading works…</div>
-    </div>
+    <div id="projects-root"></div>
   </main>
 
   <footer class="site">
@@ -596,11 +604,37 @@
         const projects = await client.fetch(QUERY);
         renderProjects(projects);
         injectStructuredData(projects);
+        await firstWorkReady();
       } catch (err) {
         console.error('Failed to load from Sanity:', err);
         document.getElementById('projects-root').innerHTML =
           `<div class="status">Unable to load works at this time.</div>`;
       }
+      hidePageLoader();
+    }
+
+    // Lazy images still load beneath the overlay since the page is laid out, so we can wait on the first slide.
+    // Capped so a slow image never blocks the whole page.
+    function firstWorkReady(timeoutMs = 6000) {
+      const fig = document.querySelector('#projects-root .work');
+      if (!fig || fig.classList.contains('is-loaded')) return Promise.resolve();
+      return new Promise((resolve) => {
+        const timer = setTimeout(() => { observer.disconnect(); resolve(); }, timeoutMs);
+        const observer = new MutationObserver(() => {
+          if (!fig.classList.contains('is-loaded')) return;
+          clearTimeout(timer);
+          observer.disconnect();
+          resolve();
+        });
+        observer.observe(fig, { attributes: true, attributeFilter: ['class'] });
+      });
+    }
+
+    function hidePageLoader() {
+      const pageLoader = document.getElementById('page-loader');
+      document.body.classList.remove('is-loading');
+      pageLoader.classList.add('is-done');
+      pageLoader.addEventListener('transitionend', () => pageLoader.remove(), { once: true });
     }
 
     function renderProjects(projects) {
