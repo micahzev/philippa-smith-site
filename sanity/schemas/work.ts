@@ -29,7 +29,14 @@ export default defineType({
       type: 'string',
       description: 'e.g. "2024". Optional.',
     }),
- 
+    defineField({
+      name: 'centerCaption',
+      title: 'Centre caption',
+      type: 'boolean',
+      initialValue: false,
+      description: 'Centre the caption under the image (e.g. for round works). Leave off for the usual left-aligned caption.',
+    }),
+
     defineField({
       name: 'mediaType',
       title: 'Media Type',

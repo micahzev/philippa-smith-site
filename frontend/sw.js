@@ -11,7 +11,7 @@
  * Bump CACHE_VERSION whenever you change the shell or invalidation strategy.
  */
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const SHELL_CACHE   = `ps-shell-${CACHE_VERSION}`;
 const DATA_CACHE    = `ps-data-${CACHE_VERSION}`;
 const IMG_CACHE     = `ps-img-${CACHE_VERSION}`;

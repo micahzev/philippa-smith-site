@@ -334,6 +334,7 @@
       opacity: 0;
       transition: opacity 420ms var(--ease), visibility 0s linear 420ms;
     }
+    .work-caption.is-centered { text-align: center; }
     .work.is-loaded .work-caption {
       visibility: visible;
       opacity: 1;
@@ -586,6 +587,7 @@
           technique,
           size,
           year,
+          centerCaption,
           mediaType,
           "image": image,
           "imageDims": image.asset->metadata.dimensions{ width, height },
@@ -724,7 +726,7 @@
 
       // Caption: 4 optional fields
       const cap = document.createElement('figcaption');
-      cap.className = 'work-caption';
+      cap.className = w.centerCaption ? 'work-caption is-centered' : 'work-caption';
       const parts = [];
       if (w.pieceName) parts.push(`<span class="piece">${escapeHTML(w.pieceName)}</span>`);
       const metaBits = [w.technique, w.size, w.year].filter(Boolean).map(escapeHTML);
