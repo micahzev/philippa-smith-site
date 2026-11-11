@@ -245,12 +245,24 @@
 
     /* Each item = figure; one item spans the full viewport width */
     .work {
+      --max-w: 720px;
+      --slot-h: min(540px, 60vh);
       flex: 0 0 100%;
       width: 100%;
       margin: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+    }
+    @media (min-width: 768px) {
+      .work { --max-w: 820px; --slot-h: min(615px, 70vh); }
+    }
+
+    /* Frame is sized to the image's real aspect ratio (--ratio, set from Sanity
+       metadata) so the caption sits directly under the image, flush left. */
+    .work-frame {
+      width: min(100%, var(--max-w), calc(var(--slot-h) * var(--ratio, 4 / 3)));
     }
 
     .work-media {
@@ -258,11 +270,7 @@
       background: var(--bg-warm);
       overflow: hidden;
       width: 100%;
-      max-width: min(720px, 100%);
-      aspect-ratio: 4 / 3;
-    }
-    @media (min-width: 768px) {
-      .work-media { max-width: min(820px, 100%); }
+      aspect-ratio: var(--ratio, 4 / 3);
     }
     .work-media img,
     .work-media video {
@@ -272,7 +280,33 @@
       background: var(--bg-warm);
       transition: opacity 420ms var(--ease);
     }
-    /* .work-media img[data-loading="true"] { opacity: 0; } */
+    .work-media img[data-loading="true"] { opacity: 0; }
+
+    /* Minimal loader: a hairline with a sliding segment */
+    .loader {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 56px;
+      height: 1px;
+      margin: 0 0 0 -28px;
+      overflow: hidden;
+      background: var(--rule);
+      pointer-events: none;
+      transition: opacity 300ms var(--ease);
+    }
+    .loader::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: 40%;
+      background: var(--ink-mute);
+      animation: loader-slide 1.2s var(--ease) infinite;
+    }
+    @keyframes loader-slide {
+      from { transform: translateX(-100%); }
+      to   { transform: translateX(250%); }
+    }
+    .work.is-loaded .loader { opacity: 0; }
 
     /* Video thumbnail overlay */
     .play-badge {
@@ -295,9 +329,15 @@
       padding-top: 14px;
       font-size: 12px;
       line-height: 1.55;
-      text-align: center;
-      width: 100%;
-      max-width: min(820px, 100%);
+      text-align: left;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 420ms var(--ease), visibility 0s linear 420ms;
+    }
+    .work.is-loaded .work-caption {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity 420ms var(--ease);
     }
     .work-caption .piece {
       font-family: var(--f-display);
@@ -433,7 +473,11 @@
     .lightbox-content img {
       user-select: none;
       -webkit-user-drag: none;
+      transition: opacity 420ms var(--ease);
     }
+    .lightbox-content img[data-loading="true"] { opacity: 0; }
+    .lightbox .loader { background: rgba(255, 255, 255, 0.2); }
+    .lightbox .loader::after { background: #fff; }
 
     .lightbox .arrow {
       position: absolute;
@@ -498,6 +542,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 4 8 12 16 20"/></svg>
     </button>
     <div class="lightbox-content" id="lightbox-content"></div>
+    <div class="loader" id="lb-loader" hidden></div>
     <button class="arrow lb-next" id="lb-next" aria-label="Next work">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 4 16 12 8 20"/></svg>
     </button>
@@ -543,9 +588,11 @@
           year,
           mediaType,
           "image": image,
+          "imageDims": image.asset->metadata.dimensions{ width, height },
           "video": videoFile.asset->url,
           "videoUrl": videoUrl,
-          "posterImage": posterImage
+          "posterImage": posterImage,
+          "posterDims": posterImage.asset->metadata.dimensions{ width, height }
         }
       }
     `;
@@ -614,10 +661,18 @@
       const fig = document.createElement('figure');
       fig.className = 'work';
 
+      const isVideo = isVideoWork(w);
+      const dims = isVideo ? w.posterDims : w.imageDims;
+      const ratio = dims?.width && dims?.height ? dims.width / dims.height : (isVideo ? 16 / 9 : 4 / 3);
+      fig.style.setProperty('--ratio', ratio);
+
+      const frame = document.createElement('div');
+      frame.className = 'work-frame';
+
       const media = document.createElement('div');
       media.className = 'work-media';
 
-      if (isVideoWork(w)) {
+      if (isVideo) {
         // Show poster image + play badge. Click opens lightbox with <video>
         const img = document.createElement('img');
         if (w.posterImage) {
@@ -654,14 +709,18 @@
         img.alt = w.pieceName || 'Artwork';
         img.loading = 'lazy';
         img.decoding = 'async';
-        img.dataset.loading = 'true';
-        img.addEventListener('load', () => { img.dataset.loading = 'false'; });
         img.addEventListener('click', onOpen);
         img.style.cursor = 'zoom-in';
         media.appendChild(img);
       }
 
-      fig.appendChild(media);
+      const loader = document.createElement('div');
+      loader.className = 'loader';
+      loader.setAttribute('aria-hidden', 'true');
+      media.appendChild(loader);
+
+      frame.appendChild(media);
+      fig.appendChild(frame);
 
       // Caption: 4 optional fields
       const cap = document.createElement('figcaption');
@@ -671,9 +730,27 @@
       const metaBits = [w.technique, w.size, w.year].filter(Boolean).map(escapeHTML);
       if (metaBits.length) parts.push(`<span class="meta">${metaBits.join(' · ')}</span>`);
       cap.innerHTML = parts.join(' · ');
-      if (parts.length) fig.appendChild(cap);
+      if (parts.length) frame.appendChild(cap);
 
+      trackImageLoad(fig);
       return fig;
+    }
+
+    // Marks the slide .is-loaded once its image is ready (hides loader, reveals caption).
+    function trackImageLoad(fig) {
+      const img = fig.querySelector('.work-media img');
+      const done = () => {
+        if (img) img.dataset.loading = 'false';
+        fig.classList.add('is-loaded');
+      };
+      if (!img || !img.getAttribute('src')) return done();
+      if (img.complete && img.naturalWidth) return done();
+      img.dataset.loading = 'true';
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', () => {
+        console.warn('Image failed to load:', img.currentSrc || img.src);
+        done();
+      }, { once: true });
     }
 
     /* ---------- Carousel Logic ---------- */
@@ -699,6 +776,7 @@
       for (const clone of [firstClone, lastClone]) {
         clone.setAttribute('aria-hidden', 'true');
         clone.inert = true;
+        trackImageLoad(clone);
       }
       track.appendChild(firstClone);
       track.insertBefore(lastClone, track.children[0]);
@@ -796,6 +874,7 @@
     const lbPrev = document.getElementById('lb-prev');
     const lbNext = document.getElementById('lb-next');
     const lbCounter = document.getElementById('lb-counter');
+    const lbLoader = document.getElementById('lb-loader');
 
     let lbItems = [];
     let lbIndex = 0;
@@ -826,6 +905,7 @@
       lb.classList.remove('open');
       lbContent.innerHTML = '';
       lbImg = null;
+      lbLoader.hidden = true;
       unlockScroll();
       lbReturnFocus?.focus?.({ preventScroll: true });
       lbReturnFocus = null;
@@ -836,6 +916,7 @@
       const w = lbItems[lbIndex];
       lbContent.innerHTML = '';
       lbImg = null;
+      lbLoader.hidden = true;
       if (isVideoWork(w)) renderLightboxVideo(w);
       else if (w.image) renderLightboxImage(w);
       lbCounter.textContent = `${pad(lbIndex + 1)} / ${pad(lbItems.length)}`;
@@ -902,6 +983,18 @@
       img.draggable = false;
       lbContent.appendChild(img);
       lbImg = img;
+      if (img.complete && img.naturalWidth) return;
+      img.dataset.loading = 'true';
+      lbLoader.hidden = false;
+      const done = () => {
+        img.dataset.loading = 'false';
+        if (lbImg === img) lbLoader.hidden = true;
+      };
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', () => {
+        console.warn('Image failed to load:', img.src);
+        done();
+      }, { once: true });
     }
     function renderLightboxVideo(w) {
       const externalUrl = w.videoUrl;
